@@ -1,4 +1,4 @@
-# Csv to json
+# Json to csv
 > Simply transform a json to a csv
 
 
@@ -42,11 +42,11 @@ optional arguments:
                         File or folder of files containing one json per line
   --streaming           Create the csv in a stream way instead of loading
                         every json in memory
-  --sep SEP             Separator used to create columns' names
+  --sep SEP             Separator used to create columns names
   --int_to_float        Cast int to float
   --path_output PATH_OUTPUT
                         Path output
-```sh
+```
 
 Please refer to [here](https://github.com/Besedo/json-to-csv/examples) for examples.
 
