@@ -305,7 +305,7 @@ def main():
     logger = setup_custom_logger('json_to_csv_logger')
     assert os.path.exists(opt.path_data_jsonperline)
     try:
-        os.mkdir(os.path.dirname(opt.path_output))
+        os.makedirs(os.path.dirname(opt.path_output))
     except:
         logger.info("Folder already exists. Overwriting it")
         pass
