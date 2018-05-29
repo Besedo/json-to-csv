@@ -70,6 +70,9 @@ def _flatten(d, parent_key='', sep='_', int_to_float=False):
                 my_elems_w = []
                 if isinstance(w, dict):
                     my_elems_w.extend(_flatten(w, sep=sep, int_to_float=int_to_float).items())
+                elif isinstance(w, str):
+                    my_elems.append('"' + w + '"')
+                    continue
                 else:
                     my_elems.append(w)
                     continue
