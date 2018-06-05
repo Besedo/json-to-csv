@@ -81,6 +81,7 @@ def _flatten(d, parent_key='', sep='_', int_to_float=False, remove_null=False):
                 else:
                     if not remove_null:
                         my_elems.append('null')
+
                     continue
                 # Put in in alphabetical order
                 my_elems_w = sorted(my_elems_w, key=lambda tup: tup[0])
