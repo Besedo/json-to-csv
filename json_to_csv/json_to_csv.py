@@ -73,8 +73,10 @@ def _flatten(d, parent_key='', sep='_', int_to_float=False):
                 elif isinstance(w, str):
                     my_elems.append('"' + w + '"')
                     continue
-                else:
+                elif w != None:
                     my_elems.append(w)
+                    continue
+                else:
                     continue
                 # Put in in alphabetical order
                 my_elems_w = sorted(my_elems_w, key=lambda tup: tup[0])
