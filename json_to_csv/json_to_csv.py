@@ -57,7 +57,8 @@ def _flatten(d, parent_key='', sep='_', int_to_float=False, remove_null=False):
         :param d: dictionary
         :param parent_key: parent_key used to create field name      
         :param sep: separator of nested fields 
-	:param int_to_float: if set tu true int will be casted to float
+        :param int_to_float: if set to true int will be casted to float
+        :param remove_null: if set to true, will remove_null from json arrays
         
         :return: list of jsons flattened
     """
@@ -81,7 +82,6 @@ def _flatten(d, parent_key='', sep='_', int_to_float=False, remove_null=False):
                 else:
                     if not remove_null:
                         my_elems.append('null')
-
                     continue
                 # Put in in alphabetical order
                 my_elems_w = sorted(my_elems_w, key=lambda tup: tup[0])
@@ -114,8 +114,6 @@ def _flatten(d, parent_key='', sep='_', int_to_float=False, remove_null=False):
             else:
                 if v != None:
                     items.append((new_key, v))
-                elif not remove_null:
-                    items.append((new_key, 'null'))
     return dict(items)
 
 
@@ -125,8 +123,8 @@ def _transform_jsons(json_list, sep, int_to_float, remove_null):
 
         :param json_list: list of jsons
         :param sep: separator to use when creating columns' names
-        :param int_to_float: if set tu true int will be casted to float
-        
+        :param int_to_float: if set to true int will be casted to float
+        :param remove_null: if set to true, will remove_null from json arrays
         
         :return: list of jsons flattened
     """
@@ -143,8 +141,8 @@ def update_df_list(df_list, json_list, sep, int_to_float, remove_null):
         :param df_list: list of dataframes
         :param json_list: list of jsons
         :param sep: separator to use when creating columns' names
-        :param int_to_float: if set tu true int will be casted to float
-        
+        :param int_to_float: if set to true int will be casted to float
+        :param remove_null: if set to true, will remove_null from json arrays
         
         :return: list of dataframes udpated
     """
@@ -165,7 +163,8 @@ def update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null):
         :param json_list: list of json files
         :param columns: list of columns to dump (order is important)
         :param sep: separator to use when creating columns' names
-        :param int_to_float: if set tu true int will be casted to float
+        :param int_to_float: if set to true int will be casted to float
+        :param remove_null: if set to true, will remove_null from json arrays
     """
 
     data = _transform_jsons(json_list, sep, int_to_float, remove_null)
@@ -186,7 +185,7 @@ def update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null):
     return
 
 
-def update_columns_list(columns_list, json_list, sep):
+def update_columns_list(columns_list, json_list, sep, int_to_float, remove_null):
     """
         Update columns list with new json information
         Sometimes jsons do not have the same fields
@@ -195,10 +194,12 @@ def update_columns_list(columns_list, json_list, sep):
         :param columns_list: list of columns to update
         :param json_list: list of jsons
         :param sep: separator to use when creating columns' names
+        :param int_to_float: if set to true int will be casted to float
+        :param remove_null: if set to true, will remove_null from json arrays
         
         :return: list of columns updated
     """
-    data = _transform_jsons(json_list, sep)
+    data = _transform_jsons(json_list, sep, int_to_float, remove_null)
     cols = []
     for js in data:
         cols.extend(js.keys())
@@ -207,13 +208,15 @@ def update_columns_list(columns_list, json_list, sep):
     return columns_list
 
 
-def get_columns(list_data_paths, sep, logger):
+def get_columns(list_data_paths, sep, logger, int_to_float, remove_null):
     """
         Get the columns created accordingly to a list of files containing json
 
         :param list_data_paths: list of files containing one json per line
         :param sep: separator to use when creating columns' names
         :param logger: logger (used to print)
+        :param int_to_float: if set to true int will be casted to float
+        :param remove_null: if set to true, will remove_null from json arrays
         
         :return: Exhaustive list of columns
     """
@@ -228,7 +231,7 @@ def get_columns(list_data_paths, sep, logger):
             for i, line in enumerate(f):
                 j += 1
                 if (j % 500000 == 0):
-                    columns_list = update_columns_list(columns_list, json_list, sep)
+                    columns_list = update_columns_list(columns_list, json_list, sep, int_to_float, remove_null)
                     logger.info('Iteration ' + str(j) + ': Updating columns ===> ' + str(len(columns_list)) + ' columns found')                    
                     json_list = []
                 try:
@@ -238,7 +241,7 @@ def get_columns(list_data_paths, sep, logger):
                     continue
         # A quicker solution would be to join directly to create a valid json
         if (len(json_list) > 0):
-            columns_list = update_columns_list(columns_list, json_list, sep)
+            columns_list = update_columns_list(columns_list, json_list, sep, int_to_float, remove_null)
             logger.info('Iteration ' + str(j) + ': Updating columns ===> ' + str(len(columns_list)) + ' columns found')
 
     # Concatenate the dataframes created
@@ -255,8 +258,8 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
         :param path_csv: path to csv output if streaming
         :param logger: logger (used to print)
         :param sep: separator to use when creating columns' names
-        :param int_to_float: if set tu true int will be casted to float
-        
+        :param int_to_float: if set to true int will be casted to float
+        :param remove_null: if set to true, will remove_null from json arrays
         
         :return: dataframe or nothing if the dataframe is generated while streaming the files
     """
@@ -287,7 +290,7 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
         if (len(json_list) > 0):
             logger.info('Iteration ' + str(j) + ': Creating last sub dataframe')            
             if columns:
-                logger.info("updating csv with new data" + path_csv)                
+                logger.info("updating csv with new data " + path_csv)                
                 update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null)
                 json_list.clear()                              
 
@@ -331,7 +334,7 @@ def main():
     # Get list of columns if not in streaming
     columns_list = None
     if opt.streaming:
-        columns_list = get_columns(data, opt.sep, logger)
+        columns_list = get_columns(data, opt.sep, logger, opt.int_to_float, opt.remove_null)
         # Sort columns in alphabetical order
         columns_list.sort()
         df = pd.DataFrame(columns=columns_list)
