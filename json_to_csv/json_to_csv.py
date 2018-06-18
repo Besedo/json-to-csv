@@ -161,7 +161,7 @@ def update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null):
 
     # Order dataframe by the columns detected
     df = df[columns]
-    df.to_csv(path_csv, mode='a', header=False, encoding="utf-8", index=None)
+    df.to_csv(path_csv, mode='a', header=False, encoding="utf-8", index=None, quoting=1)
 
     del df
     return
@@ -323,14 +323,14 @@ def main():
         logger.info(columns_list)
 
         # Dump empty dataframes with columns
-        df.to_csv(opt.path_output, encoding="utf-8", index=None)
+        df.to_csv(opt.path_output, encoding="utf-8", index=None, quoting=1)
     
     # Get dataframe
     df = get_dataframe(data, columns=columns_list, path_csv=opt.path_output, logger=logger, sep=opt.sep, int_to_float=opt.int_to_float, remove_null=opt.remove_null)
 
     if not opt.streaming:
         logger.info("saving data to "  + opt.path_output)
-        df.to_csv(opt.path_output, encoding="utf-8", index=None)
+        df.to_csv(opt.path_output, encoding="utf-8", index=None, quoting=1)
 
     logger.info('Csv successfully created and dumped')
     return 0
