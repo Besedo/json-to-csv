@@ -85,27 +85,9 @@ def _flatten(d, parent_key='', sep='_', int_to_float=False, remove_null=False):
                     continue
                 # Put in in alphabetical order
                 my_elems_w = sorted(my_elems_w, key=lambda tup: tup[0])
+                my_elems.append(dict(my_elems_w))
 
-                # For List build a string
-                dict_sorted = '{'
-                my_elems_w_order = OrderedDict(my_elems_w)
-                i = 0
-                for w_k, w_v in my_elems_w_order.items():
-                    if i!= 0:
-                        dict_sorted += ', '
-                    if isinstance(w_v, str):
-                        dict_sorted += '"{}": "{}"'.format(w_k, w_v)
-                    elif isinstance(w_v, int) and int_to_float:
-                        dict_sorted += '"{}": {}'.format(w_k, float(w_v))
-                    else:
-                        dict_sorted += '"{}": {}'.format(w_k, w_v)
-                    i += 1
-                dict_sorted += '}'
-
-                my_elems.append(dict_sorted)
-
-            my_elems = '[' + ','.join(my_elems) + ']'
-            items.append((new_key, my_elems))          
+            items.append((new_key, my_elems))      
         elif isinstance(v, dict):
             items.extend(_flatten(v, new_key, sep=sep, int_to_float=int_to_float, remove_null=remove_null).items())
         else:
@@ -179,7 +161,7 @@ def update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null):
 
     # Order dataframe by the columns detected
     df = df[columns]
-    df.to_csv(path_csv, mode='a', header=False, encoding="utf-8", index=None)
+    df.to_csv(path_csv, mode='a', header=False, encoding="utf-8", index=None, quoting=1)
 
     del df
     return
@@ -341,14 +323,14 @@ def main():
         logger.info(columns_list)
 
         # Dump empty dataframes with columns
-        df.to_csv(opt.path_output, encoding="utf-8", index=None)
+        df.to_csv(opt.path_output, encoding="utf-8", index=None, quoting=1)
     
     # Get dataframe
     df = get_dataframe(data, columns=columns_list, path_csv=opt.path_output, logger=logger, sep=opt.sep, int_to_float=opt.int_to_float, remove_null=opt.remove_null)
 
     if not opt.streaming:
         logger.info("saving data to "  + opt.path_output)
-        df.to_csv(opt.path_output, encoding="utf-8", index=None)
+        df.to_csv(opt.path_output, encoding="utf-8", index=None, quoting=1)
 
     logger.info('Csv successfully created and dumped')
     return 0
