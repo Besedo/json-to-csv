@@ -19,6 +19,14 @@ The csv column's will be
 team_captain, team_defend, team_str
 ```
 
+Up until now, ljson are handled. Jsons are handled if in the file indicated as input is in one of the following format:
+- Json array with one element per line
+- One json element in the first line
+
+TODO: 
+
+It does not yet parse jsons formatted in another way.
+But soon, it will be
 
 ## Installation
 
@@ -44,12 +52,12 @@ optional arguments:
                         every json in memory
   --sep SEP             Separator used to create columns names
   --int_to_float        Cast int to float
-  --path_output PATH_OUTPUT
-                        Path output
+  --path_output PATH_OUTPUT Path output
+  --remove_null         Remove null values (kept by default)
+  --is_json             Indicate if input file is a json
 ```
 
 Please refer to [here](https://github.com/Besedo/json-to-csv/examples) for examples.
-
 
 
 ## Meta
