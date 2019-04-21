@@ -209,8 +209,8 @@ def read_jsons_chunks(file_object, chunk_size=10000):
                 # If we are at the end of the file
                 if c in [']', ''] and nb_bracket == 0 and nb_quotes % 2 == 0:
                     break
-                # If we are in between 2 json examples or a the end                    
-                if c in [',','\n'] and nb_bracket == 0 and nb_quotes % 2 == 0:
+                # If we are in between 2 json examples or a the end or at the beginning             
+                if c in ['[', ',', '\n'] and nb_bracket == 0 and nb_quotes % 2 == 0:
                     continue
                 # Check beginning of brackets
                 if c == '{':
