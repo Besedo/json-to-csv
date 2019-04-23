@@ -194,33 +194,59 @@ def update_columns_list(columns_list, json_list, sep, int_to_float, remove_null)
 def read_jsons_chunks(file_object, chunk_size=10000):
     """Lazy function to read a json by chunk.
     Default chunk size: 10k"""
-    # Check first element of a file
-    # If it is "[", that means we have a json array
-    first_line = file_object.readline()
-    if first_line[0] == '[':
-        while True: 
-            # Parse the next real chunk_size lines
-            data = []
-            for i in range(chunk_size):
-                # Here it works with one json, or an array of jsons with one json in each line
-                # TODO Make it work with no assumption over json 
-                # Remove comma and to the next line
-                line = file_object.readline().strip(',\n')
-                # If EOF obtained or end of jsonarray send what's left of the data
-                if line == "" or line == "]":
-                    yield data
-                    return
-                else:
-                    data.append(json.loads(line))
-            if not data:
-                break
-            yield data
-    # End of file obtained
-    elif file_object.read() == ']':
-        return None
-    # Otherwise, we have one json in the file
-    else:
-        yield [json.loads(first_line)]
+
+    while True: 
+        # Parse the next real chunk_size lines
+        data = []
+        for i in range(chunk_size):
+            nb_bracket = 0
+            nb_quotes = 0
+            example = ""
+            c_bef = ""
+            c_2bef = ""
+            while True:
+                # Read one character
+                c = file_object.read(1)
+                # If we are at the end of the file
+                if c in [']', ''] and nb_bracket == 0 and nb_quotes % 2 == 0:
+                    break
+                # If we are in between 2 json examples or a the end or at the beginning             
+                if c in ['[', ',', '\n'] and nb_bracket == 0 and nb_quotes % 2 == 0:
+                    continue
+                # Check beginning of brackets
+                if c == '{' and nb_quotes % 2 == 0:
+                    # Check only when '{' is a delimiter of field or value in json
+                    if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
+                        nb_bracket += 1
+                # Check quoting
+                elif c == '"':
+                    # Check only when '"' is a delimiter of field or value in json
+                    if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
+                        nb_quotes += 1
+                # Check ending of brackets                    
+                elif c == '}' and nb_quotes % 2 == 0:
+                    # Check only when '"' is a delimiter of field or value in json
+                    if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
+                        nb_bracket -= 1
+                    # This means we finished to read one json
+                    if nb_bracket == 0 and nb_quotes % 2 == 0:
+                        example += c
+                        break
+                # Append character to the json example
+                example += c
+                # Set previous characters
+                c_2bef = c_bef
+                c_bef = c
+            # If EOF obtained or end of jsonarray send what's left of the data
+            if example == "" or example == "]":
+                yield(data)
+                return
+            else:
+                data.append(json.loads(example))
+        if not data:
+            break
+        yield data
+
 
 def get_columns(list_data_paths, sep, logger, int_to_float, remove_null, is_json):
     """
