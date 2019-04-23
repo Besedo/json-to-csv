@@ -203,6 +203,7 @@ def read_jsons_chunks(file_object, chunk_size=10000):
             nb_quotes = 0
             example = ""
             c_bef = ""
+            c_2bef = ""
             while True:
                 # Read one character
                 c = file_object.read(1)
@@ -213,27 +214,29 @@ def read_jsons_chunks(file_object, chunk_size=10000):
                 if c in ['[', ',', '\n'] and nb_bracket == 0 and nb_quotes % 2 == 0:
                     continue
                 # Check beginning of brackets
-                if c == '{':
+                if c == '{' and nb_quotes % 2 == 0:
                     # That means that the '"' is a delimiter of field or value in json
-                    if c_bef != '\\':
+                    if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
                         nb_bracket += 1
                 # Check quoting
                 elif c == '"':
                     # That means that the '"' is a delimiter of field or value in json
-                    if c_bef != '\\':
+                    if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
                         nb_quotes += 1
                 # Check ending of brackets                    
-                elif c == '}':
+                elif c == '}' and nb_quotes % 2 == 0:
                     # That means that the '"' is a delimiter of field or value in json
-                    if c_bef != '\\':
+                    # Issue here when we have two
+                    if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
                         nb_bracket -= 1
-                        # This means we finished to read one json
-                        if nb_bracket == 0 and nb_quotes % 2 == 0:
-                            example += c
-                            break
+                    # This means we finished to read one json
+                    if nb_bracket == 0 and nb_quotes % 2 == 0:
+                        example += c
+                        break
                 # Append character to the json example
                 example += c
-                # Set previous character
+                # Set previous characters
+                c_2bef = c_bef
                 c_bef = c
             # If EOF obtained or end of jsonarray send what's left of the data
             if example == "" or example == "]":
