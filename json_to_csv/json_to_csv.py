@@ -215,18 +215,17 @@ def read_jsons_chunks(file_object, chunk_size=10000):
                     continue
                 # Check beginning of brackets
                 if c == '{' and nb_quotes % 2 == 0:
-                    # That means that the '"' is a delimiter of field or value in json
+                    # Check only when '{' is a delimiter of field or value in json
                     if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
                         nb_bracket += 1
                 # Check quoting
                 elif c == '"':
-                    # That means that the '"' is a delimiter of field or value in json
+                    # Check only when '"' is a delimiter of field or value in json
                     if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
                         nb_quotes += 1
                 # Check ending of brackets                    
                 elif c == '}' and nb_quotes % 2 == 0:
-                    # That means that the '"' is a delimiter of field or value in json
-                    # Issue here when we have two
+                    # Check only when '"' is a delimiter of field or value in json
                     if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
                         nb_bracket -= 1
                     # This means we finished to read one json
