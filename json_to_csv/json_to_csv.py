@@ -233,8 +233,6 @@ def read_jsons_chunks(file_object, chunk_size=10000):
 
                     # Initialize those
                     example = ""
-                    c_bef = ""
-                    c_2bef = ""
                     continue
             # If we are in between 2 json examples or at the beginning             
             elif c in ['[', ',', '\n'] and nb_bracket == 0 and nb_quotes % 2 == 0:
@@ -251,10 +249,7 @@ def read_jsons_chunks(file_object, chunk_size=10000):
                 count_escape_char = 0
             # Append character to the json example
             example += c
-
-            # Set previous characters
-            c_2bef = c_bef
-            c_bef = c       
+ 
         # If at the end of the chunk, read new chunk
         if k == len(chunk) - 1:
             chunk = file_object.read(1000000)
