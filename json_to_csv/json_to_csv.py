@@ -195,57 +195,76 @@ def read_jsons_chunks(file_object, chunk_size=10000):
     """Lazy function to read a json by chunk.
     Default chunk size: 10k"""
 
+    # Parse the next real chunk_size lines
+    chunk = file_object.read(1000000)
+    data = []
+    i = 0
+    nb_bracket = 0
+    nb_quotes = 0
+    example = ""
+    count_escape_char = 0
     while True: 
-        # Parse the next real chunk_size lines
-        data = []
-        for i in range(chunk_size):
-            nb_bracket = 0
-            nb_quotes = 0
-            example = ""
-            c_bef = ""
-            c_2bef = ""
-            while True:
-                # Read one character
-                c = file_object.read(1)
-                # If we are at the end of the file
-                if c in [']', ''] and nb_bracket == 0 and nb_quotes % 2 == 0:
-                    break
-                # If we are in between 2 json examples or a the end or at the beginning             
-                if c in ['[', ',', '\n'] and nb_bracket == 0 and nb_quotes % 2 == 0:
+        # Read cahracter by character
+        for k, c in enumerate(chunk):
+            # Check quoting
+            if c == '"':
+                # Check only when '"' is a delimiter of field or value in json
+                if count_escape_char % 2 == 0:
+                    nb_quotes += 1
+            # Check beginning of brackets
+            elif c == '{' and nb_quotes % 2 == 0:
+                # Check only when '{' is a delimiter of field or value in json
+                if count_escape_char % 2 == 0:
+                    nb_bracket += 1
+            # Check ending of brackets                    
+            elif c == '}' and nb_quotes % 2 == 0:
+                # Check only when '"' is a delimiter of field or value in json
+                if count_escape_char % 2 == 0:
+                    nb_bracket -= 1
+                # This means we finished to read one json
+                if nb_bracket == 0 and nb_quotes % 2 == 0:
+                    example += c
+                    data.append(json.loads(example))
+                    i += 1
+                    # When chunk_size jsons obtained, dump those
+                    if i % chunk_size == 0:
+                        yield(data)
+                        data = []
+
+                    # Initialize those
+                    example = ""
+                    c_bef = ""
+                    c_2bef = ""
                     continue
-                # Check beginning of brackets
-                if c == '{' and nb_quotes % 2 == 0:
-                    # Check only when '{' is a delimiter of field or value in json
-                    if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
-                        nb_bracket += 1
-                # Check quoting
-                elif c == '"':
-                    # Check only when '"' is a delimiter of field or value in json
-                    if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
-                        nb_quotes += 1
-                # Check ending of brackets                    
-                elif c == '}' and nb_quotes % 2 == 0:
-                    # Check only when '"' is a delimiter of field or value in json
-                    if c_bef != '\\' or c_bef == '\\' and c_2bef == '\\':
-                        nb_bracket -= 1
-                    # This means we finished to read one json
-                    if nb_bracket == 0 and nb_quotes % 2 == 0:
-                        example += c
-                        break
-                # Append character to the json example
-                example += c
-                # Set previous characters
-                c_2bef = c_bef
-                c_bef = c
-            # If EOF obtained or end of jsonarray send what's left of the data
-            if example == "" or example == "]":
-                yield(data)
-                return
+            # If we are in between 2 json examples or at the beginning             
+            elif c in ['[', ',', '\n'] and nb_bracket == 0 and nb_quotes % 2 == 0:
+                continue
+            # If we are at the end of the file
+            if c in [']', ''] and nb_bracket == 0 and nb_quotes % 2 == 0:
+                # If EOF obtained or end of jsonarray send what's left of the data
+                if example == "" or example == "]":
+                    yield(data)
+                    return
+            if c == "\\":
+                count_escape_char += 1
             else:
-                data.append(json.loads(example))
-        if not data:
+                count_escape_char = 0
+            # Append character to the json example
+            example += c
+
+            # Set previous characters
+            c_2bef = c_bef
+            c_bef = c       
+        # If at the end of the chunk, read new chunk
+        if k == len(chunk) - 1:
+            chunk = file_object.read(1000000)
+        # Keep what's left of the chunk        
+        elif len(chunk) != 0:
+            chunk = chunk[k:]
+        # if k == 0 that means that we read the whole file
+        else:
             break
-        yield data
+        
 
 
 def get_columns(list_data_paths, sep, logger, int_to_float, remove_null, is_json):
