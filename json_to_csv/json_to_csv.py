@@ -357,7 +357,7 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
                 if j != 0 and (j % chunk_size == 0):
                     logger.info('Iteration ' + str(j) + ': Creating sub dataframe')
                     if columns:
-                        update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null)
+                        update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list)
                         json_list = []
                 try:
                     json_list.extend(x)
@@ -374,7 +374,7 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
                     if (j % 50000 == 0):
                         logger.info('Iteration ' + str(j) + ': Creating sub dataframe')
                         if columns:
-                            update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null)
+                            update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list)
                             json_list.clear()
 
                     if (j % 100000 == 0):
@@ -391,7 +391,7 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
             logger.info('Iteration ' + str(j) + ': Creating last sub dataframe')
             if columns:
                 logger.info("updating csv with new data " + path_csv)
-                update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null)
+                update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list)
                 json_list.clear()
 
     if not columns:
