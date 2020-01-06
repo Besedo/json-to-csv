@@ -416,6 +416,7 @@ def main(logger):
 
     # Load arguments
     opt = get_args()
+    logger.info(opt)
 
     assert os.path.exists(opt.path_data_jsonperline)
     try:
@@ -433,7 +434,7 @@ def main(logger):
     # Get list of columns if in streaming
     columns_list = None
     if opt.streaming:
-        columns_list = get_columns(data, opt.sep, logger, opt.int_to_float, opt.remove_null, opt.is_json)
+        columns_list = get_columns(data, opt.sep, logger, opt.int_to_float, opt.remove_null, opt.is_json, opt.flatten_list)
         # Sort columns in alphabetical order
         columns_list.sort()
         df = pd.DataFrame(columns=columns_list)
