@@ -23,10 +23,6 @@ Up until now, ljson are handled. Jsons are handled if in the file indicated as i
 - Json array with one element per line
 - One json element in the first line
 
-TODO: 
-
-It does not yet parse jsons formatted in another way.
-But soon, it will be
 
 ## Installation
 
@@ -43,21 +39,24 @@ pip install git+https://github.com/Besedo/json-to-csv
 usage: Create csv from multiple files containing one json per line.
        [-h] [--path_data_jsonperline PATH_DATA_JSONPERLINE] [--streaming]
        [--sep SEP] [--int_to_float] [--path_output PATH_OUTPUT]
+       [--remove_null] [--is_json] [--flatten_list]
 
 optional arguments:
   -h, --help            show this help message and exit
   --path_data_jsonperline PATH_DATA_JSONPERLINE
                         File or folder of files containing one json per line
   --streaming           Create the csv in a stream way instead of loading
-                        every json in memory
-  --sep SEP             Separator used to create columns names
-  --int_to_float        Cast int to float
-  --path_output PATH_OUTPUT Path output
-  --remove_null         Remove null values (kept by default)
-  --is_json             Indicate if input file is a json
+                        every json in memory (default False)
+  --sep SEP             Separator used to create columns' names
+  --int_to_float        Cast int to float (default False)
+  --path_output PATH_OUTPUT
+                        Path output
+  --remove_null         Remove null values (default False)
+  --is_json             Indicate if input file is a json (default False)
+  --flatten_list        If true, flatten list of objects (default False)
 ```
 
-Please refer to [here](https://github.com/Besedo/json-to-csv/examples) for examples.
+Please refer to [here](examples) for examples.
 
 
 ## Meta
