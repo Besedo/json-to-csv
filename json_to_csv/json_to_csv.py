@@ -18,12 +18,13 @@ def get_args():
         "Create csv from multiple files containing one json per line."
     )
     parser.add_argument("--path_data_jsonperline", type=str, help="File or folder of files containing one json per line")
-    parser.add_argument("--streaming",  action='store_true', default=False, help="Create the csv in a stream way instead of loading every json in memory")
+    parser.add_argument("--streaming",  action='store_true', default=False, help="Create the csv in a stream way instead of loading every json in memory (default False)")
     parser.add_argument("--sep", default='.', help="Separator used to create columns' names")
-    parser.add_argument("--int_to_float", action='store_true', default=False, help="Cast int to float")
+    parser.add_argument("--int_to_float", action='store_true', default=False, help="Cast int to float (default False)")
     parser.add_argument("--path_output", type=str, help="Path output")
-    parser.add_argument("--remove_null", action='store_true', default=False, help="Remove null values (kept by default)")
-    parser.add_argument("--is_json", action='store_true', default=False, help="Indicate if input file is a json")
+    parser.add_argument("--remove_null", action='store_true', default=False, help="Remove null values (default False)")
+    parser.add_argument("--is_json", action='store_true', default=False, help="Indicate if input file is a json (default False)")
+    parser.add_argument("--flatten_list", action='store_true', default=False, help="If true, flatten list of objects (default False)")
 
     args = parser.parse_args()
     return args
@@ -49,7 +50,7 @@ def setup_custom_logger(name):
     return logger
 
 
-def _flatten(d, parent_key='', sep='_', int_to_float=False, remove_null=False, flatten_list=True):
+def _flatten(d, parent_key='', sep='_', int_to_float=False, remove_null=False, flatten_list=False):
     """
         Flatten a nested dictionary to one leve dictionary (recursive function)
 
@@ -325,7 +326,7 @@ def get_columns(list_data_paths, sep, logger, int_to_float, remove_null, is_json
     return columns_list
 
 
-def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep='.', int_to_float=False, remove_null=False, is_json=False, flatten_list=True):
+def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep='.', int_to_float=False, remove_null=False, is_json=False, flatten_list=False):
     """
         Get dataframe from files containing one json per line
 
@@ -442,7 +443,7 @@ def main(logger):
         df.to_csv(opt.path_output, encoding="utf-8", index=None, quoting=1)
 
     # Get dataframe
-    df = get_dataframe(data, columns=columns_list, path_csv=opt.path_output, logger=logger, sep=opt.sep, int_to_float=opt.int_to_float, remove_null=opt.remove_null, is_json=opt.is_json, flatten_list=opt.flatten)
+    df = get_dataframe(data, columns=columns_list, path_csv=opt.path_output, logger=logger, sep=opt.sep, int_to_float=opt.int_to_float, remove_null=opt.remove_null, is_json=opt.is_json, flatten_list=opt.flatten_list)
 
     if not opt.streaming:
         logger.info("saving data to " + opt.path_output)
