@@ -351,9 +351,10 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
             # Read json file by chunk
             for x in read_jsons_chunks(f, chunk_size=chunk_size):
                 if j!=0 and (j % chunk_size == 0):
-                    update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null)
                     logger.info('Iteration ' + str(j) + ': Creating sub dataframe')
-                    json_list = []
+                    if columns:
+                        update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null)
+                        json_list = []
                 try:
                     json_list.extend(x)
                     # Maximum of chunk_size elements were added
