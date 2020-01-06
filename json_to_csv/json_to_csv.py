@@ -453,11 +453,18 @@ def main(logger):
     return 0
 
 
-if __name__ == "__main__":
+def main_cli():
+    """
+        Function that calls the main function
+    """
     try:
         logger = setup_custom_logger('json_to_csv_logger')
-        sys.exit(main())
+        sys.exit(main(logger))
     except Exception as e:
         logger.info("Uncaught error waiting for scripts to finish")
         logger.info(e)
         raise
+
+
+if __name__ == "__main__":
+    main_cli()

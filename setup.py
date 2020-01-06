@@ -25,7 +25,7 @@ setup(name='json-to-csv',
       packages=find_packages(),
       entry_points={
           'console_scripts': [
-              'json-to-csv=json_to_csv.json_to_csv:main',
+              'json-to-csv=json_to_csv.json_to_csv:main_cli',
           ]},
 
       )
