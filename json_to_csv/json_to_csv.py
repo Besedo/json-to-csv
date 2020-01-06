@@ -69,25 +69,27 @@ def _flatten(d, parent_key='', sep='_', int_to_float=False, remove_null=False, f
         new_key = parent_key + sep + k if parent_key else k
         # Keep it as a list but continue to separate nested fields
         if isinstance(v, list):
-            my_elems = []
-            for w in v:
-                my_elems_w = []
-                if isinstance(w, dict):
-                    my_elems_w.extend(_flatten(w, sep=sep, int_to_float=int_to_float, remove_null=remove_null, flatten_list=flatten_list).items())
-                elif isinstance(w, str):
-                    my_elems.append(w)
-                    continue
-                elif w is not None:
-                    my_elems.append(w)
-                    continue
-                else:
-                    if not remove_null:
-                        my_elems.append('null')
-                    continue
-                # Put in in alphabetical order
-                my_elems_w = sorted(my_elems_w, key=lambda tup: tup[0])
-                my_elems.append(dict(my_elems_w))
-
+            if flatten_list:
+                my_elems = []
+                for w in v:
+                    my_elems_w = []
+                    if isinstance(w, dict):
+                        my_elems_w.extend(_flatten(w, sep=sep, int_to_float=int_to_float, remove_null=remove_null, flatten_list=flatten_list).items())
+                    elif isinstance(w, str):
+                        my_elems.append(w)
+                        continue
+                    elif w is not None:
+                        my_elems.append(w)
+                        continue
+                    else:
+                        if not remove_null:
+                            my_elems.append('null')
+                        continue
+                    # Put in in alphabetical order
+                    my_elems_w = sorted(my_elems_w, key=lambda tup: tup[0])
+                    my_elems.append(dict(my_elems_w))
+            else:
+                items.append((new_key, v))
             items.append((new_key, my_elems))
         elif isinstance(v, dict):
             items.extend(_flatten(v, new_key, sep=sep, int_to_float=int_to_float, remove_null=remove_null, flatten_list=flatten_list).items())
