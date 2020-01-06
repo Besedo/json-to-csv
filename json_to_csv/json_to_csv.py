@@ -88,9 +88,9 @@ def _flatten(d, parent_key='', sep='_', int_to_float=False, remove_null=False, f
                     # Put in in alphabetical order
                     my_elems_w = sorted(my_elems_w, key=lambda tup: tup[0])
                     my_elems.append(dict(my_elems_w))
+                items.append((new_key, my_elems))
             else:
                 items.append((new_key, v))
-            items.append((new_key, my_elems))
         elif isinstance(v, dict):
             items.extend(_flatten(v, new_key, sep=sep, int_to_float=int_to_float, remove_null=remove_null, flatten_list=flatten_list).items())
         else:
