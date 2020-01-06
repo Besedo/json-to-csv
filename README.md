@@ -23,10 +23,6 @@ Up until now, ljson are handled. Jsons are handled if in the file indicated as i
 - Json array with one element per line
 - One json element in the first line
 
-TODO: 
-
-It does not yet parse jsons formatted in another way.
-But soon, it will be
 
 ## Installation
 
@@ -57,7 +53,7 @@ optional arguments:
   --is_json             Indicate if input file is a json
 ```
 
-Please refer to [here](https://github.com/Besedo/json-to-csv/examples) for examples.
+Please refer to [here](examples) for examples.
 
 
 ## Meta
