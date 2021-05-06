@@ -5,6 +5,7 @@ import pandas as pd
 import logging
 import sys
 from glob import glob
+import gzip
 
 
 def get_args():
@@ -25,6 +26,7 @@ def get_args():
     parser.add_argument("--remove_null", action='store_true', default=False, help="Remove null values (default False)")
     parser.add_argument("--is_json", action='store_true', default=False, help="Indicate if input file is a json (default False)")
     parser.add_argument("--flatten_list", action='store_true', default=False, help="If true, flatten list of objects (default False)")
+    parser.add_argument("--compress", action='store_true', default=False, help="Compress output using gz")
 
     args = parser.parse_args()
     return args
@@ -142,7 +144,7 @@ def update_df_list(df_list, json_list, sep, int_to_float, remove_null, flatten_l
     return df_list
 
 
-def update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list):
+def update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list, compression):
     """
         Append a csv with json list
 
@@ -153,11 +155,11 @@ def update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, fla
         :param int_to_float: if set to true int will be casted to float
         :param remove_null: if set to true, will remove_null from json arrays
         :param flatten_list: if set to true, will flatten the content of a list of objects
+        :param compression: compression algorithm (None by default)
     """
 
     data = _transform_jsons(json_list, sep, int_to_float, remove_null, flatten_list)
     df = pd.DataFrame(data)
-
     # Add columns that are missing with nan
     current_columns = df.columns.tolist()
     missing_columns = [col for col in columns if col not in current_columns]
@@ -166,7 +168,7 @@ def update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, fla
 
     # Order dataframe by the columns detected
     df = df[columns]
-    df.to_csv(path_csv, mode='a', header=False, encoding="utf-8", index=None, quoting=1)
+    df.to_csv(path_csv, mode='a', header=False, encoding="utf-8", index=None, quoting=1,compression=compression)
 
     del df
     return
@@ -306,7 +308,10 @@ def get_columns(list_data_paths, sep, logger, int_to_float, remove_null, is_json
                     continue
         # If we deal with ljson
         else:
-            with open(data_file) as f:
+            fuc = lambda x: open(x)
+            if data_file.endswith(".gz"):
+                fuc = lambda x: gzip.open(x)
+            with fuc(data_file) as f:
                 for i, line in enumerate(f):
                     j += 1
                     if (j % 50000 == 0):
@@ -328,7 +333,7 @@ def get_columns(list_data_paths, sep, logger, int_to_float, remove_null, is_json
     return columns_list
 
 
-def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep='.', int_to_float=False, remove_null=False, is_json=False, flatten_list=False):
+def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep='.', int_to_float=False, remove_null=False, is_json=False, flatten_list=False, compression=None):
     """
         Get dataframe from files containing one json per line
 
@@ -341,6 +346,8 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
         :param remove_null: if set to true, will remove_null from json arrays
         :param is_json: if set to true, inputs are considered as valid json
         :param flatten_list: if set to true, will flatten the content of a list of objects
+        :param compression: compression algorithm (None by default)
+
 
         :return: dataframe or nothing if the dataframe is generated while streaming the files
     """
@@ -359,7 +366,7 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
                 if j != 0 and (j % chunk_size == 0):
                     logger.info('Iteration ' + str(j) + ': Creating sub dataframe')
                     if columns:
-                        update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list)
+                        update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list, compression)
                         json_list = []
                 try:
                     json_list.extend(x)
@@ -370,13 +377,16 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
                     continue
         # If we deal with ljson
         else:
-            with open(data_file) as f:
+            fuc = lambda x: open(x)
+            if data_file.endswith(".gz"):
+                fuc = lambda x: gzip.open(x)
+            with fuc(data_file) as f:
                 for i, line in enumerate(f):
                     j += 1
                     if (j % 50000 == 0):
                         logger.info('Iteration ' + str(j) + ': Creating sub dataframe')
                         if columns:
-                            update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list)
+                            update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list, compression)
                             json_list.clear()
 
                     if (j % 100000 == 0):
@@ -393,7 +403,7 @@ def get_dataframe(list_data_paths, columns=None, path_csv=None, logger=None, sep
             logger.info('Iteration ' + str(j) + ': Creating last sub dataframe')
             if columns:
                 logger.info("updating csv with new data " + path_csv)
-                update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list)
+                update_csv(path_csv, json_list, columns, sep, int_to_float, remove_null, flatten_list, compression)
                 json_list.clear()
 
     if not columns:
@@ -433,6 +443,7 @@ def main(logger):
         logger.info("Reading " + opt.path_data_jsonperline)
         data = [opt.path_data_jsonperline]
 
+    compression="gzip" if opt.compress else None
     # Get list of columns if in streaming
     columns_list = None
     if opt.streaming:
@@ -443,14 +454,14 @@ def main(logger):
         logger.info(columns_list)
 
         # Dump empty dataframes with columns
-        df.to_csv(opt.path_output, encoding="utf-8", index=None, quoting=1)
+        df.to_csv(opt.path_output, encoding="utf-8", index=None, quoting=1,compression=compression)
+
 
     # Get dataframe
-    df = get_dataframe(data, columns=columns_list, path_csv=opt.path_output, logger=logger, sep=opt.sep, int_to_float=opt.int_to_float, remove_null=opt.remove_null, is_json=opt.is_json, flatten_list=opt.flatten_list)
-
+    df = get_dataframe(data, columns=columns_list, path_csv=opt.path_output, logger=logger, sep=opt.sep, int_to_float=opt.int_to_float, remove_null=opt.remove_null, is_json=opt.is_json, flatten_list=opt.flatten_list, compression=compression)
     if not opt.streaming:
         logger.info("saving data to " + opt.path_output)
-        df.to_csv(opt.path_output, encoding="utf-8", index=None, quoting=1)
+        df.to_csv(opt.path_output, encoding="utf-8", index=None, quoting=1, compression=compression)
 
     logger.info('Csv successfully created and dumped')
     return 0
